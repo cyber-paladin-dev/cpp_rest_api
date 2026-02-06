@@ -1,12 +1,12 @@
 CXX		  := clang++
-CXX_FLAGS := -Wall -Wextra -std=c++17 -g
+CXX_FLAGS := -Wall -Wextra -std=c++17 -g -pthread
 
 BIN		:= bin
 SRC		:= src
 INCLUDE	:= include
 LIB		:= lib
 
-LIBRARIES	:=
+LIBRARIES	:= -pthread
 EXECUTABLE	:= main
 
 
