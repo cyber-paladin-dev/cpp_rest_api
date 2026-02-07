@@ -44,6 +44,17 @@ User parseUserFromJson(const std::string& body) {
     return user;
 }
 
+// Helper function to find and delete user by ID
+bool deleteUserById(int userId) {
+    for (auto it = users.begin(); it != users.end(); ++it) {
+        if (it->id == userId) {
+            users.erase(it);
+            return true;
+        }
+    }
+    return false;
+}
+
 int main() {
     // Create HTTP server
     httplib::Server svr;
@@ -74,15 +85,24 @@ int main() {
     
     // Create new user
     svr.Post("/users", [](const httplib::Request& req, httplib::Response& res) {
-        if (!req.body.empty()) {
-            User newUser = parseUserFromJson(req.body);
-            users.push_back(newUser);
-            res.set_content(newUser.toJson(), "application/json");
-            res.status = 201;  // Created
-        } else {
+        if (req.body.empty()) {
             res.set_content("{\"error\":\"Empty request body\"}", "application/json");
             res.status = 400;  // Bad Request
+            return;
         }
+        
+        // Validate JSON contains required fields
+        if (req.body.find("\"name\":") == std::string::npos || 
+            req.body.find("\"email\":") == std::string::npos) {
+            res.set_content("{\"error\":\"Missing required fields: name, email\"}", "application/json");
+            res.status = 400;
+            return;
+        }
+        
+        User newUser = parseUserFromJson(req.body);
+        users.push_back(newUser);
+        res.set_content(newUser.toJson(), "application/json");
+        res.status = 201;  // Created
     });
     
     // Get user by ID
@@ -99,6 +119,19 @@ int main() {
         res.status = 404;  // Not Found
     });
     
+    // Delete user by ID
+    svr.Delete("/users/(\\d+)", [](const httplib::Request& req, httplib::Response& res) {
+        int userId = std::stoi(req.matches[1]);
+        
+        if (deleteUserById(userId)) {
+            res.set_content("{\"message\":\"User deleted successfully\",\"id\":" + std::to_string(userId) + "}", "application/json");
+            res.status = 200;  // OK
+        } else {
+            res.set_content("{\"error\":\"User not found\"}", "application/json");
+            res.status = 404;  // Not Found
+        }
+    });
+    
     // Start server
     std::cout << "Starting C++ REST API server on http://localhost:8080" << std::endl;
     std::cout << "Available endpoints:" << std::endl;
@@ -106,6 +139,7 @@ int main() {
     std::cout << "  GET  /users         - Get all users" << std::endl;
     std::cout << "  POST /users         - Create new user" << std::endl;
     std::cout << "  GET  /users/<id>    - Get user by ID" << std::endl;
+    std::cout << "  DELETE /users/<id>  - Delete user by ID" << std::endl;
     std::cout << "\nPress Ctrl+C to stop the server." << std::endl;
     
     svr.listen("localhost", 8080);
