@@ -150,8 +150,12 @@ cpp_rest_api/
 ├── Makefile               # Build configuration
 ├── README.md              # This file
 ├── src/
-│   └── main.cpp           # REST API implementation
+│   ├── main.cpp           # Server initialization and route registration
+│   ├── user.cpp           # User model and helper implementations
+│   └── user_routes.cpp    # User endpoint handlers
 ├── include/
+│   ├── user.h             # User struct and helper declarations
+│   ├── user_routes.h      # Route registration interface
 │   └── cpp-httplib/
 │       └── httplib.h      # HTTP server library
 ├── bin/
@@ -161,10 +165,13 @@ cpp_rest_api/
 
 ## Architecture
 
+The codebase is organized into separate modules for better maintainability:
+
+- **src/main.cpp**: Server initialization, sample data setup, and route registration
+- **src/user.cpp & include/user.h**: User model and business logic (storage, parsing, deletion helpers)
+- **src/user_routes.cpp & include/user_routes.h**: Route handlers for all user endpoints
 - **httplib::Server**: Handles HTTP requests and responses
-- **User struct**: Simple data model with JSON serialization
-- **Route handlers**: Lambda functions handling each endpoint
-- **In-memory storage**: Vector-based user database
+- **In-memory storage**: Vector-based user database (can be replaced with persistent storage)
 
 ## Testing Examples
 
